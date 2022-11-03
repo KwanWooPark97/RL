@@ -40,7 +40,7 @@ class Train:
         state, next_state = str(state), str(next_state)  # dictionary 에서 key는 str만 받으므로 형변환
         current_q = self.Q_table[state][action]  # 현재 상태에서 액션을 했을때 q함수값
         next_state_q = self.Q_table[next_state][next_action]  # 다음 상태에서 다음 액션을 했을때 q함수값
-        td = reward + (self.discount * next_state_q*(1.0-done)) - current_q  # 시간차 에러(Temporal-Difference Error)
+        td = reward + (self.discount * next_state_q*(1.0-done)) - current_q  # 시간차 에러(Temporal-Difference Error) terminal 상황에서는 done을 이용해 q_{t+1}을 제거해줌
         new_q = current_q + self.learning_rate * td  # 살사의 업데이트 식
         self.Q_table[state][action] = new_q
 
@@ -50,7 +50,7 @@ class Train:
 
     def run(self):
         total_episode = 100
-        sr = 0
+
 
         for episode in range(total_episode):
             action_sequence = []
@@ -58,7 +58,7 @@ class Train:
 
             # initial state, action, done
             state = self.env.reset()
-            done = False
+
 
             while True:
 
@@ -76,9 +76,6 @@ class Train:
                     print('episode :{}, The sequence of action is:\
                                          {}'.format(episode, action_sequence))
                     print('Q-table:\n', dict(self.Q_table), '\n')
-
-                    if state[0] == 4 and state[1]==4:
-                        sr += 1
                     break
                 else:
                     state = next_state
