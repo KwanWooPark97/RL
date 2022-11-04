@@ -15,7 +15,7 @@ class Train:
         self.epsilon=0.1
         self.learning_rate=0.01
         #self.state=[0.0,0.0]
-        self.Q_table = defaultdict(lambda: [0.0, 0.0, 0.0, 0.0])
+        self.Q_table = defaultdict(lambda: [0.0, 0.0, 0.0, 0.0])# Q 테이블을 만들기위해 딕셔너리로 변환
         self.action_match = ['Up', 'Down', 'Left', 'Right']
 
     def arg_max(self,q_list):
@@ -39,7 +39,7 @@ class Train:
     def update(self, state, action, reward, next_state,done):
         state, next_state = str(state), str(next_state)  # dictionary 에서 key는 str만 받으므로 형변환
         current_q = self.Q_table[state][action]  # 현재 상태에서 액션을 했을때 q함수값
-        next_state_q = max(self.Q_table[next_state])  # 다음 상태에서 다음 액션을 했을때 q함수값
+        next_state_q = max(self.Q_table[next_state])  # 다음 상태에서 다음 액션을 했을때 q함수값 SARSA와 여기서 달라짐 action을 미리 알 필요가 없음
         td = reward + (self.discount * next_state_q*(1.0-done)) - current_q  # 시간차 에러(Temporal-Difference Error)
         new_q = current_q + self.learning_rate * td  # 살사의 업데이트 식
         self.Q_table[state][action] = new_q
@@ -76,9 +76,6 @@ class Train:
                     print('episode :{}, The sequence of action is:\
                      {}'.format(episode, action_sequence))
                     print('Q-table:\n',dict(self.Q_table),'\n')
-
-                    if state[0] == 4 and state[1]==4:
-                        sr += 1
                     break
                 else:
                     state = next_state
