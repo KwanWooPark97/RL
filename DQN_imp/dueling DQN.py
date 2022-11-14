@@ -7,9 +7,9 @@ import random
 from collections import deque
 import gym
 
-env = gym.make('CartPole-v0')
-num_action = env.action_space.n
-state_size = env.observation_space.shape[0]
+env = gym.make('CartPole-v0')#카트폴 환경을 가져옴
+num_action = env.action_space.n#액션의 사이즈를 정의해줌
+state_size = env.observation_space.shape[0]#state의 사이즈를 정의해줌
 
 
 class Duel_DQN(Model):  # Q 함수를 추정하기 위해 만든 dqn 뉴런 네트워크입니다. 입력은 state며 출력은 Q함수입니다.
@@ -23,7 +23,7 @@ class Duel_DQN(Model):  # Q 함수를 추정하기 위해 만든 dqn 뉴런 네�
     def call(self, state):
         layer1 = self.layer1(state)
         layer2 = self.layer2(layer1)
-        value = self.value(layer2)
+        value = self.value(layer2)#하나의 layer 출력을 이용하여 2개의 입력으로 사용
         advantage=self.advantage(layer2)
         result=tf.add(value, advantage) # 위에서 구한 V 함수값과 A 함수 값을 더해서 Q 함수를 만들어 줍니다.
         return result
@@ -83,11 +83,11 @@ class DQNtrain:
             actions.append(mini_batch[i][1])
             rewards.append(mini_batch[i][2])
             next_states[i] = mini_batch[i][3]
-            dones.append(mini_batch[i][4])
+            dones.append(mini_batch[i][4])#학습에 사용할 각 변수에 데이터들을 저장합니다. unzip과 같은 역할을 수행함
 
-        dqn_variable = self.dqn_model.trainable_variables
+        dqn_variable = self.dqn_model.trainable_variables#학습할 네트워크의 가중치들을 가져옵니다
 
-        with tf.GradientTape() as tape:
+        with tf.GradientTape() as tape:#학습 시작
             tape.watch(dqn_variable)
 
             target = self.dqn_model(tf.convert_to_tensor(np.vstack(states), dtype=tf.float32))  # original Q 함수 값을 구합니다.
@@ -97,7 +97,7 @@ class DQNtrain:
 
             target = np.array(target)
             # target_action = np.array(target)
-            target_val = np.array(target_val)
+            target_val = np.array(target_val)#계산을 빠르게 하기위해 numpy 형태로 바꿔줍니다.
 
             for i in range(self.batch_size):
                 best_action = np.argmax(target[i])  # Q 함수값중 가장 큰 값을 가지는 action을 구합니다.
@@ -120,31 +120,31 @@ class DQNtrain:
         t_end = 500
         epi = 100000
 
-        state = env.reset()
-        state = np.reshape(state, [1, state_size])
+        state = env.reset()#환경 초기화
+        state = np.reshape(state, [1, state_size])#네트워크 입력에 넣기위해 차원을 추가해줌
 
         for e in range(epi):
             total_reward = 0
             for t in range(t_end):
                 action = self.get_action(state)
-                next_state, reward, done, info = env.step(action)
-                next_state = np.reshape(next_state, [1, state_size])
+                next_state, reward, done, info = env.step(action)#환경과 상호작용하여 1 step 움직임
+                next_state = np.reshape(next_state, [1, state_size])#네트워크 입력에 넣기위해 차원을 추가함
 
-                if t == t_end:
+                if t == t_end:#terminal 상태 확인
                     done = True
                 if t < t_end and done:
                     reward = -1
 
                 total_reward += reward
-                self.append_sample(state, action, reward, next_state, done)
+                self.append_sample(state, action, reward, next_state, done)#버퍼에 데이터 추가
 
-                if len(self.memory) >= self.train_start:
+                if len(self.memory) >= self.train_start:#버퍼에 일정량 데이터가 쌓일때까지 학습안함
                     self.train()
 
                 total_reward += reward
                 state = next_state
 
-                if done:
+                if done:#에피소드가 끝나면 타겟 네트워크 업데이트 및 텐서보드 확인을 위한 파일 저장
                     self.update_target()
                     self.reward_board(total_reward)
                     print("e : ", e, " reward : ", total_reward, " step : ", t)
