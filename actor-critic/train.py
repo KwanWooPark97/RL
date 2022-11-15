@@ -9,16 +9,16 @@ from tensorflow.keras.initializers import RandomUniform
 
 
 # 정책 신경망과 가치 신경망 생성
-class A2C(tf.keras.Model):
+class A2C(tf.keras.Model):#기본적인 내용을 다루는 a2c이기 때문에 크리틱과 액터를 구분하지 않음 보통은 따로 사용
     def __init__(self, action_size):
         super(A2C, self).__init__()
         self.actor_fc = Dense(24, activation='tanh')
         self.actor_out = Dense(action_size, activation='softmax',
-                               kernel_initializer=RandomUniform(-1e-3, 1e-3))
+                               kernel_initializer=RandomUniform(-1e-3, 1e-3))#액션의 출력을 확률로 반환
         self.critic_fc1 = Dense(24, activation='tanh')
         self.critic_fc2 = Dense(24, activation='tanh')
         self.critic_out = Dense(1,
-                                kernel_initializer=RandomUniform(-1e-3, 1e-3))
+                                kernel_initializer=RandomUniform(-1e-3, 1e-3))#크리틱의 출력은 V 함수를 의미함
 
     def call(self, x):
         actor_x = self.actor_fc(x)
@@ -33,7 +33,7 @@ class A2C(tf.keras.Model):
 # 카트폴 예제에서의 액터-크리틱(A2C) 에이전트
 class A2CAgent:
     def __init__(self, action_size):
-        self.render = False
+        self.render = False#카트폴이 학습하는 모습을 보고싶으면 True로 바꿈
 
         # 행동의 크기 정의
         self.action_size = action_size
@@ -44,18 +44,18 @@ class A2CAgent:
 
         # 정책신경망과 가치신경망 생성
         self.model = A2C(self.action_size)
-        # 최적화 알고리즘 설정, 미분값이 너무 커지는 현상을 막기 위해 clipnorm 설정
+        # 최적화 알고리즘 설정, 미분값이 너무 커지는 현상을 막기 위해 clipnorm 설정, Adam 말고 RMSprop나 다른 옵티마이저도 사용해보는 경험 만들기
         self.optimizer = Adam(lr=self.learning_rate, clipnorm=5.0)
 
     # 정책신경망의 출력을 받아 확률적으로 행동을 선택
     def get_action(self, state):
         policy, _ = self.model(state)
         policy = np.array(policy[0])
-        return np.random.choice(self.action_size, 1, p=policy)[0]
+        return np.random.choice(self.action_size, 1, p=policy)[0]#액터에서 나온 출력은 모든 액션에 대한 확률이므로 그 확률에 의해서 한개를 선택해주는 넘파이 함수
 
     # 각 타임스텝마다 정책신경망과 가치신경망을 업데이트
     def train_model(self, state, action, reward, next_state, done):
-        model_params = self.model.trainable_variables
+        model_params = self.model.trainable_variables#학습할 네트워크의 변수들을 가져옴
         with tf.GradientTape() as tape:
             policy, value = self.model(state)#현재상태의 정책과 가치함수를 가져옴
             _, next_value = self.model(next_state)#다음 상태의 가치함수를 가져옴
@@ -76,9 +76,9 @@ class A2CAgent:
             loss = 0.2 * actor_loss + critic_loss#두 오류함수를 더하는대 정책신경망의 비중을 줄여줌
 
         # 오류함수를 줄이는 방향으로 모델 업데이트
-        grads = tape.gradient(loss, model_params)
-        self.optimizer.apply_gradients(zip(grads, model_params))
-        return np.array(loss)
+        grads = tape.gradient(loss, model_params)#loss를 이용해서 학습하는 변수들의 미분값을 구함
+        self.optimizer.apply_gradients(zip(grads, model_params))#미분값을 이용하고 옵티마이저를 통해서 역전파를 적용
+        return np.array(loss)#텐서보드를 통해 loss를 확인하기 위한 반환값 보통 반환을 잘 안하는데 학습 과정을 보고싶으면 설정해둠
 
 
 if __name__ == "__main__":
@@ -104,11 +104,11 @@ if __name__ == "__main__":
 
         while not done:
             if agent.render:
-                env.render()
+                env.render()#위에서 설정한 학습하는 과정을 볼지말지 정해주는 코드
 
             action = agent.get_action(state)
-            next_state, reward, done, info = env.step(action)
-            next_state = np.reshape(next_state, [1, state_size])
+            next_state, reward, done, info = env.step(action)#step을 하여 학습에 필요한 데이터 수집
+            next_state = np.reshape(next_state, [1, state_size])#네트워크 입력으로 사용하기 위해 batch_size를 의미하는 1차원 추가
 
             # 타임스텝마다 보상 0.1, 에피소드가 중간에 끝나면 -1 보상
             score += reward
@@ -135,5 +135,5 @@ if __name__ == "__main__":
 
                 # 이동 평균이 400 이상일 때 종료
                 if score_avg > 400:
-                    agent.model.save_weights("./save_model/model", save_format="tf")
-                    sys.exit()
+                    agent.model.save_weights("./save_model/model", save_format="tf")#학습된 모델 저장, save_model을 사용하지 않음 weights를 사용함
+                    sys.exit()#시스템 종료
