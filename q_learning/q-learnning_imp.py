@@ -1,5 +1,5 @@
 import numpy as np
-from rl_env_q import Env
+from rl_env_q_imp import Env
 from collections import defaultdict
 import random
 
@@ -10,11 +10,9 @@ class Train:
         self.grid_width=grid_width
         self.grid_height=grid_height
         self.action= [0, 1, 2, 3]
-        #self.Q_table = np.zeros(((4,self.grid_width, self.grid_height)))
         self.discount=0.99
         self.epsilon=0.1
         self.learning_rate=0.01
-        #self.state=[0.0,0.0]
         self.Q_table = defaultdict(lambda: [0.0, 0.0, 0.0, 0.0])# Q 테이블을 만들기위해 딕셔너리로 변환
         self.action_match = ['Up', 'Down', 'Left', 'Right']
 
@@ -45,12 +43,10 @@ class Train:
         self.Q_table[state][action] = new_q
 
     def save_actionseq(self, action_sequence, action):
-        #idx = self.action_grid.index(action)
         action_sequence.append(self.action_match[action])
 
     def run(self):
-        total_episode = 100
-        sr = 0
+        total_episode = 200
 
         for episode in range(total_episode):
             action_sequence = []
@@ -80,10 +76,43 @@ class Train:
                 else:
                     state = next_state
 
+    def test(self):
+        print('-----------------------------test----------------------------------')
+        total_episode = 5
+
+        for episode in range(total_episode):
+            action_sequence = []
+            total_reward = 0
+
+            # initial state, action, done
+            random_start_x=np.random.randint(0, 6)
+            random_start_y=np.random.randint(0, 6)
+            state = self.env.reset(random_start_x,random_start_y)
+            done = False
+
+            while True:
+
+                action = self.get_action(state)
+                self.save_actionseq(action_sequence, action)
+
+                next_state, reward, done = env.step(state, action)
+
+                total_reward += reward
+
+                if done:
+                    print('finished at', state ,'reward:',reward)
+                    print('episode :{}, The sequence of action is:\
+                     {}'.format(episode, action_sequence))
+                    print('start position:\n',random_start_y,random_start_x,'\n')
+                    break
+                else:
+                    state = next_state
+
 if __name__ == '__main__':
     env = Env()
-    model = Train(env, 5, 5)
+    model = Train(env, 7, 7)
     model.run()
+    model.test()
 
 
 
