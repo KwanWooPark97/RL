@@ -81,7 +81,8 @@ class DDPGagent(object):
         self.state_dim = env.observation_space.shape[0]
         # 행동 차원
         self.action_dim = env.action_space.shape[0]
-        # 행동의 최대 크기
+        # 행동의 최대 크기 액터의 출력층이 tanh 이므로 [-1,1]인데 이 값을 곱해줘서 [-max_action,max_action]으로 바꿔줌
+        # 만약 행동의 최대, 최소 크기가 다르다면 low 값을 저장해서 넣어줘야함
         self.action_bound = env.action_space.high[0]
 
         # 액터, 타깃 액터 신경망 및 크리틱, 타깃 크리틱 신경망 생성
@@ -118,7 +119,7 @@ class DDPGagent(object):
         theta = self.actor.get_weights()
         target_theta = self.target_actor.get_weights()
         for i in range(len(theta)):
-            target_theta[i] = TAU * theta[i] + (1 - TAU) * target_theta[i]
+            target_theta[i] = TAU * theta[i] + (1 - TAU) * target_theta[i] #soft 업데이트 방식으로 천천히 target을 업데이트
         self.target_actor.set_weights(target_theta)
 
         phi = self.critic.get_weights()
@@ -132,7 +133,7 @@ class DDPGagent(object):
     def critic_learn(self, states, actions, td_targets):
         with tf.GradientTape() as tape:
             q = self.critic([states, actions], training=True)
-            loss = tf.reduce_mean(tf.square(q-td_targets))
+            loss = tf.reduce_mean(tf.square(q-td_targets)) #MSE 방식에 TD를 사용해서 크리틱 학습
 
         grads = tape.gradient(loss, self.critic.trainable_variables)
         self.critic_opt.apply_gradients(zip(grads, self.critic.trainable_variables))
@@ -143,18 +144,18 @@ class DDPGagent(object):
         with tf.GradientTape() as tape:
             actions = self.actor(states, training=True)
             critic_q = self.critic([states, actions])
-            loss = -tf.reduce_mean(critic_q)
+            loss = -tf.reduce_mean(critic_q) #Q 자체를 미분해서 사용하는데 - 를 붙여서 경사 상승법으로 바꿈
 
         grads = tape.gradient(loss, self.actor.trainable_variables)
         self.actor_opt.apply_gradients(zip(grads, self.actor.trainable_variables))
 
 
-    ## Ornstein Uhlenbeck 노이즈
+    ## Ornstein Uhlenbeck 노이즈 부족한 탐색을 추가하기 위한 노이즈
     def ou_noise(self, x, rho=0.15, mu=0, dt=1e-1, sigma=0.2, dim=1):
         return x + rho*(mu - x)*dt + sigma*np.sqrt(dt)*np.random.normal(size=dim)
 
 
-    ## TD 타깃 계산
+    ## TD 타깃 계산 크리틱을 업데이트 할때 사용함
     def td_target(self, rewards, q_values, dones):
         y_k = np.asarray(q_values)
         for i in range(q_values.shape[0]): # number of batch

@@ -1,4 +1,6 @@
 ## 리플레이 버퍼 클래스 파일
+##강화학습에 관심을 가지고 있으면 이렇게 직접 구현하는 방법보다는 cpprb 패키지의 사용법을 알아두면 좋을것같다.
+#cpprb에는 replay buffer 뿐만 아니라 PER,HER등 다양한 buffer들을 제공한다.
 
 # 필요한 패키지 임포트
 import numpy as np
