@@ -69,6 +69,7 @@ if __name__ == "__main__":
 
             action = agent.get_action(state)
             next_state, reward, done, info = env.step(action)
+            print(next_state[2])
             next_state = np.reshape(next_state, [1, state_size])
 
             score += reward
