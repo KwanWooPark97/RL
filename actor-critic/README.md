@@ -42,7 +42,7 @@ A 함수의 뜻을 살펴보면 Q 함수는 현재 state에서 특정 action에 
 그리고 여기서 actor와 critic에 대해 나누기 시작한다. A 를 사용하기 위해서는 3개의 NN을 사용할지 2개의 NN을 사용할지 정할 수 있다. 보통 2개의 NN을 사용해서 policy를 estimate 하는 ACTOR와 V 함숫값을 estimate 하는 CRITIC을 사용한다.
 ![https://github.com/KwanWooPark97/RL_basic/blob/master/actor-critic/img/a2c_7.png](https://github.com/KwanWooPark97/RL_basic/blob/master/actor-critic/img/a2c_7.png)  
 
-강화 학습은 데이터를 sampling 하기 때문에 위와 같이 식을 바꿀 수 있다. 그리고 Q 함수는 별반 방정식을 사용하여 V 함수에 대해 바꿀 수 있으므로 A 함수를 계산할 수 있다.
+강화 학습은 데이터를 sampling 하기 때문에 위와 같이 식을 바꿀 수 있다. 그리고 Q 함수는 벨만 방정식을 사용하여 V 함수에 대해 바꿀 수 있으므로 A 함수를 계산할 수 있다.
 ![https://github.com/KwanWooPark97/RL_basic/blob/master/actor-critic/img/a2c_8.png](https://github.com/KwanWooPark97/RL_basic/blob/master/actor-critic/img/a2c_8.png)  
 
 위에서 정리한 식들을 사용하여 loss 함수를 구해보면 Critic은 A 함수를 추정하기 위한 loss를 정의했고 Actor는 A함수를 사용해 목적 함수를 최대화하는 방향으로 loss를 정의한다.
